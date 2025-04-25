@@ -1,0 +1,240 @@
+/* General Page Styles */
+body {
+    background-color: #f3f4f6;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Prediction Container */
+.prediction-container {
+    width: 70%; /* Adjusted to make it more centered */
+    margin: 50px auto;
+    padding: 30px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Header */
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.header h1 {
+    font-size: 2.4rem; /* Increased for more prominence */
+    color: #333;
+}
+
+/* Team Selection */
+.team-selection {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.team {
+    width: 48%; /* Ensuring the team selection boxes are equal in size */
+}
+
+/* Label */
+label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+    color: #555;
+}
+
+/* Input and Select Styling */
+select, input {
+    width: 100%;
+    padding: 12px; /* Increased padding for better spacing */
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    margin-bottom: 15px; /* Increased margin for better spacing */
+    box-sizing: border-box;
+}
+
+select:focus, input:focus {
+    border-color: #4caf50;
+    outline: none;
+}
+
+/* Additional Inputs */
+.additional-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* Centered Target Runs Box */
+.input-group#target-runs {
+    display: flex;
+    justify-content: center;
+}
+
+.input-group#target-runs input {
+    width: 80%; /* Center the Target Runs input */
+    padding: 12px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+/* Button Container */
+.button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+/* Predict Button */
+.predict-button {
+    padding: 12px 25px; /* Adjusted for more comfortable sizing */
+    font-size: 16px;
+    background: linear-gradient(to right, #4caf50, #45a049);
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.3s;
+    letter-spacing: 0.5px;
+}
+
+.predict-button:hover {
+    background: linear-gradient(to right, #45a049, #3e8e41);
+    transform: translateY(-2px);
+}
+
+/* Floating Error Message */
+#error-message {
+    position: fixed;
+    top: 20px; /* Positioned at the top of the page */
+    left: 50%;
+    transform: translateX(-50%); /* Centers the message horizontally */
+    background-color: #f44336;
+    color: white;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    display: none; /* Hidden by default, will be displayed when an error occurs */
+    animation: fadeIn 0.5s ease-in-out; /* Smooth animation on show */
+}
+
+/* Error Message Animation */
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Win Probability */
+.win-probability {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.win-probability-header {
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Probability Bar */
+.probability-bar-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.probability-bar-background {
+    width: 100%;
+    height: 20px;
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.probability-bar {
+    height: 100%;
+    border-radius: 10px;
+    background: linear-gradient(to right, #4caf50 0%, #45a049 100%);
+    transition: width 0.5s ease-in-out;
+}
+
+/* Team Names */
+.team-name {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+}
+
+.left {
+    text-align: left;
+    margin-right: 10px;
+}
+
+.right {
+    text-align: right;
+    margin-left: 10px;
+}
+
+/* Probability Text */
+.probability-text {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+}
+
+.probability-text span:nth-child(1) {
+    color: #4caf50;
+}
+
+.probability-text span:nth-child(2) {
+    color: #f44336;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .prediction-container {
+        width: 90%;
+        padding: 20px; /* Adjusted for better spacing */
+    }
+
+    .team-selection {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .additional-inputs {
+        grid-template-columns: 1fr;
+    }
+
+    .probability-bar-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .team-selection {
+        justify-content: flex-start;
+    }
+}

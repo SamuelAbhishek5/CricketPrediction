@@ -1,0 +1,207 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+header h1 {
+  font-size: 2.5rem;
+  margin: 0;
+  height: 75px; /* Ensures a fixed height */
+  padding: 20px 0; /* Adds vertical spacing */
+}
+
+.live-score,
+.match-prediction {
+  border: 1px solid #ddd;
+}
+
+.welcome-note h3 {
+  color: #007bff;
+}
+
+footer {
+  background-color: #343a40;
+}
+
+footer p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+#one {
+    color: green
+}
+
+#two {
+    color: black
+}
+
+.live-cricket-container {
+  width: 100%; /* Full width of the container */
+  overflow: hidden; /* Hides the overflowing content */
+  background-color: #f8f9fa; /* Light background for visibility */
+  border: 1px solid #ccc;
+  padding: 10px 0;
+  position: relative;
+}
+
+.live-cricket-slider {
+  display: inline-block;
+  white-space: nowrap;
+  animation: slide-left 15s linear infinite; /* Smooth sliding animation */
+}
+
+.live-cricket-slider span {
+  display: inline-block;
+  margin-right: 50px; /* Spacing between items */
+  font-size: 1rem;
+  color: #212529; /* Text color */
+  font-weight: bold;
+}
+
+@keyframes slide-left {
+  0% {
+    transform: translateX(100%); /* Start from right */
+  }
+  100% {
+    transform: translateX(-100%); /* Move to left */
+  }
+}
+
+/* General Styles */
+.header {
+  background-color: white;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.logo-green {
+  color: rgb(48, 188, 48);
+  text-decoration: none;
+}
+
+.logo-black {
+  color: black;
+  text-decoration: none;
+  margin-left: -10px;
+}
+
+/* Live Match Score Section */
+.live-container {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  overflow-x: auto;
+  display: flex;
+  gap: 15px;
+  scroll-behavior: smooth;
+}
+
+.match-score {
+  min-width: 250px;
+  padding: 15px;
+  background-color: #e9ecef;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.match-score:hover {
+  transform: scale(1.05);
+  background-color: #d4edda;
+}
+
+.match-score h5 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.match-score p {
+  margin: 0;
+}
+
+body {
+  background-color: #f8f9fa;
+}
+
+.container {
+  position: relative;
+}
+
+.score-container {
+  display: flex;
+  gap: 50px; /* Space between cards */
+  overflow: hidden; /* Hide the scrollbar */
+  padding: 10px;
+  position: relative;
+  scroll-behavior: smooth;
+}
+
+.score-card {
+  min-width: 250px;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  text-align: center;
+  flex-shrink: 0;
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth zoom */
+}
+
+.score-card.centered {
+  transform: scale(1.2); /* Zoom in for the centered card */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Add shadow for focus */
+}
+
+.team-score {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 5px 0;
+}
+
+.match-details {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.status {
+  font-size: 12px;
+  color: #007bff;
+}
+
+.scroll-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background-color: #28a745;
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.scroll-button.left {
+  left: 10px;
+}
+
+.scroll-button.right {
+  right: 10px;
+}
+
+.scroll-button:hover {
+  background-color: #218838;
+}
+
+
+/* Styling for Predict page */
+

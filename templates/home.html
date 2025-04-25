@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SMcric: Your ultimate destination for real-time cricket scores, match predictions, and insights.">
+  <meta name="keywords" content="Cricket, Live Scores, Match Predictions, SMcric">
+  <meta name="author" content="SMcric Team">
+  <title>SMcric</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      position: relative;
+    }
+    .score-container {
+      display: flex;
+      gap: 30px; /* Reduced space between cards for compactness */
+      overflow: hidden; /* Hide overflow to enable sliding */
+      padding: 20px;
+      position: relative;
+      scroll-behavior: smooth;
+      border: none;
+      box-shadow: none;
+      background: #fff;
+    }
+    .score-card {
+      min-width: 300px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+    }
+    .score-card:hover {
+      transform: scale(1.05); /* Zoom effect on hover */
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+    .team-score {
+      font-size: 18px;
+      font-weight: bold;
+      margin: 5px 0;
+    }
+    .match-details {
+      font-size: 14px;
+      color: #6c757d;
+    }
+    .status {
+      font-size: 12px;
+      color: #007bff;
+    }
+    .scroll-button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+      background-color:rgb(48, 188, 48);
+      border: none;
+      color: white;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease;
+    }
+    .scroll-button:hover {
+      transform: translateY(-50%) scale(1.2); /* Zoom effect on hover */
+    }
+    .scroll-button.left {
+      left: 15px;
+    }
+    .scroll-button.right {
+      right: 15px;
+    }
+    .dynamic.score.card {
+       border: none; /* Ensure parent container has no border */
+       box-shadow: none; /* Remove shadow if present */
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="text-center" style="background-color: white; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);">
+    <div class="container-fluid" style="padding-left: 0;">
+      <h1 class="mb-0" style="text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); font-weight: bold;">
+        <a href="#" style="color: rgb(48, 188, 48); text-decoration: none; font-weight: bold;">SM</a>
+        <a href="#" style="color: black; text-decoration: none; margin-left: -10px; font-weight: bold;">cric</a>
+      </h1>
+    </div>
+  </header>
+
+
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">SMcric</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="/predict">Predictions</a>
+
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+
+
+
+  <!-- Main Content -->
+  <main class="container mt-5">
+    <!-- Live Match Score -->
+    <section id="home" class="live-score bg-light p-4 rounded shadow">
+      <h2 class="text-center">Live Match Score</h2>
+      <div class = "dynamic score card">
+        
+          <button class="scroll-button left" id="scroll-left">&lt;</button>
+          <div id="score-container" class="score-container"></div>
+          <button class="scroll-button right" id="scroll-right">&gt;</button>
+      </div>
+      
+            <script>
+          
+              const scoreContainer = document.getElementById("score-container");
+              const scrollLeftButton = document.getElementById("scroll-left");
+              const scrollRightButton = document.getElementById("scroll-right");
+          
+              // Create cards
+
+        function populateCards(matches) {
+            const scoreContainer = document.getElementById('score-container');
+
+            matches.typeMatches[1].seriesMatches[0].seriesAdWrapper.matches.forEach((match) => {
+                const card = document.createElement("div");
+                card.classList.add("score-card");
+
+                // Using dot notation to populate the card content
+                card.innerHTML = `
+                    <div class="match-details">${match.matchInfo.matchDesc}</div>
+                    <div class="team-score">
+                        ${match.matchInfo.team1.teamSName}: 
+                        ${match.matchScore.team1Score.inngs1.runs}/${match.matchScore.team1Score.inngs1.wickets} 
+                        in ${match.matchScore.team1Score.inngs1.overs} overs
+                    </div>
+                    <div class="team-score">
+                        ${match.matchInfo.team2.teamSName}: 
+                        ${match.matchScore.team2Score.inngs1.runs}/${match.matchScore.team2Score.inngs1.wickets} 
+                        in ${match.matchScore.team2Score.inngs1.overs} overs
+                    </div>
+                    <div class="status">${match.matchInfo.status}</div>
+                `;
+
+                scoreContainer.appendChild(card);
+            });
+
+            matches.typeMatches[1].seriesMatches[2].seriesAdWrapper.matches.forEach((match) => {
+                const card = document.createElement("div");
+                card.classList.add("score-card");
+
+                // Using dot notation to populate the card content
+                card.innerHTML = `
+                    <div class="match-details">${match.matchInfo.matchDesc}</div>
+                    <div class="team-score">
+                        ${match.matchInfo.team1.teamSName}: 
+                        ${match.matchScore.team1Score.inngs1.runs}/${match.matchScore.team1Score.inngs1.wickets} 
+                        in ${match.matchScore.team1Score.inngs1.overs} overs
+                    </div>
+                    <div class="team-score">
+                        ${match.matchInfo.team2.teamSName}: 
+                        ${match.matchScore.team2Score.inngs1.runs}/${match.matchScore.team2Score.inngs1.wickets} 
+                        in ${match.matchScore.team2Score.inngs1.overs} overs
+                    </div>
+                    <div class="status">${match.matchInfo.status}</div>
+                `;
+
+                scoreContainer.appendChild(card);
+            });
+        }
+        fetch('/live_matches')
+            .then(response => response.json())
+            .then(matches => {
+                console.log(matches);
+                populateCards(matches);  // Pass fetched data to populateCards
+            })
+            .catch(error => console.error('Error fetching data:', error));
+          
+              // Auto slide
+              let autoSlideInterval;
+          
+              function autoSlide() {
+                autoSlideInterval = setInterval(() => {
+                  scroll("right");
+                }, 3000);
+              }
+          
+              function resetAutoSlide() {
+                clearInterval(autoSlideInterval);
+                autoSlide();
+              }
+          
+              // Scroll functionality
+              function scroll(direction) {
+                const scrollAmount = 300;
+                scoreContainer.scrollBy({
+                  left: direction === "left" ? -scrollAmount : scrollAmount,
+                  behavior: "smooth",
+                });
+                resetAutoSlide();
+              }
+          
+              // Initialization
+              scrollLeftButton.addEventListener("click", () => scroll("left"));
+              scrollRightButton.addEventListener("click", () => scroll("right"));
+              autoSlide();
+          
+      
+      
+      
+          
+        </script>
+      
+      
+    </section>
+    <!-- Welcome Note -->
+<section class="welcome-note my-5 text-center">
+  <h3 style="font-weight: bold;">Welcome to SMcric!</h3>
+  <p>Your ultimate destination for real-time cricket scores, match predictions, and more.</p>
+</section>
+    <!-- Match Prediction Content -->
+    <section id="predictions" class="match-prediction bg-light p-4 rounded shadow my-4">
+      <h3>Cricket Match Prediction</h3>
+      <p>
+        Our prediction system analyzes real-time data, including team performances, player stats,
+        pitch conditions, and historical match outcomes, to provide accurate winning probabilities.
+        Dive in to explore our powerful cricket insights!
+      </p>
+    </section>
+  </main>
+  <!-- Footer -->
+  <footer class="bg-dark text-white text-center py-3 mt-5">
+    <p>&copy; 2024 SMcric. All rights reserved.</p>
+    <p><a href="#" class="text-white">Privacy Policy</a> | <a href="#" class="text-white">Terms of Service</a></p>
+  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>
