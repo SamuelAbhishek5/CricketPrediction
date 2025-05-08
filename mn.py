@@ -266,29 +266,15 @@ class IPLWinPredictor:
         """Train the model with enhanced features"""
         try:
             X, y = self.prepare_features(df, is_training=True)
-            
-            # Feature selection
-            selector = SelectFromModel(
-                xgb.XGBClassifier(n_estimators=100, random_state=42), 
-                threshold='median'
-            )
-            selector.fit(X, y)
-            self.selector = selector
-            X_selected = selector.transform(X)
-            
+        
             # Split the data
             X_train, X_test, y_train, y_test = train_test_split(
-                X_selected, y, test_size=0.2, random_state=42, stratify=y
+                X, y, test_size=0.2, random_state=42, stratify=y
             )
-            
-            # Tune hyperparameters if requested
-            if tune_hyperparams:
-                self.tune_model(X_train, y_train)
-            
             # Train the model
             self.model.fit(X_train, y_train)
             
-            # Cross-validation score
+            '''# Cross-validation score
             cv_scores = cross_val_score(self.model, X_selected, y, cv=5, scoring='accuracy')
             #print(f"Cross-validation accuracy: {cv_scores.mean():.4f} ± {cv_scores.std():.4f}")
             
@@ -296,7 +282,7 @@ class IPLWinPredictor:
             y_pred = self.model.predict(X_test)
             accuracy = accuracy_score(y_test, y_pred)
             report = classification_report(y_test, y_pred)
-            conf_matrix = confusion_matrix(y_test, y_pred)
+            conf_matrix = confusion_matrix(y_test, y_pred)'''
             
             '''print(f"Test accuracy: {accuracy:.4f}")
             print("Classification report:")
@@ -305,7 +291,7 @@ class IPLWinPredictor:
             print(conf_matrix)'''
             
             # Get feature importance
-            if hasattr(self.model, 'feature_importances_'):
+            ''''if hasattr(self.model, 'feature_importances_'):
                 feature_names = [f for f in df.columns if f not in ['match_id', 'city', 'player_of_match', 'venue', 'team1', 'team2', 'toss_winner', 'toss_decision', 'winner', 'result', 'result_margin', 'target_runs', 'target_overs']]
                 feature_importance = dict(sorted(zip(
                     feature_names,
@@ -314,9 +300,9 @@ class IPLWinPredictor:
                 
                 #print("Top 10 feature importances:")
                 #for i, (feature, importance) in enumerate(list(feature_importance.items())[:10]):
-                    #print(f"{i+1}. {feature}: {importance:.4f}")
+                    #print(f"{i+1}. {feature}: {importance:.4f}")'''
 
-            joblib.dump({
+            """joblib.dump({
                 'model': self.model,
                 'scaler': self.scaler,
                 'le_team': self.le_team,
@@ -326,7 +312,7 @@ class IPLWinPredictor:
                 'cv_scores': cv_scores,
                 'report': report,
                 'conf_matrix': conf_matrix
-            }
+            }"""
             
         except Exception as e:
             print(f"Error in train method: {str(e)}")
@@ -355,10 +341,9 @@ class IPLWinPredictor:
         """Predict win probability for a match"""
         try:
             match_data = pd.DataFrame([match_info])
-            X_full = self.prepare_features(match_data, is_training=False)
-            X = self.selector.transform(X_full)
+            X = self.prepare_features(match_data, is_training=False)
             probabilities = self.model.predict_proba(X)[0]
-            team1_base_prob, team2_base_prob = probabilities[1], probabilities[0]
+            team1_base_prob, team2_base_prob = probabilities[0], probabilities[1]
             
             # Adjust probabilities based on match situation
             if not all(k in match_info for k in ['required_runs', 'remaining_overs', 'required_wickets']):
@@ -391,25 +376,29 @@ class IPLWinPredictor:
                 rr_difficulty = required_rr / initial_rr
             else:
                 # If we don't have initial run rate, use a reference value
-                # based on format (e.g., ~7.5 for T20, ~5.5 for ODI)
-                reference_rr = 7.5 if total_overs <= 20 else 5.5
+                # based on format (e.g., ~8 for T20, ~5.5 for ODI)
+                reference_rr = 8 if total_overs <= 20 else 5.5
                 rr_difficulty = required_rr / reference_rr
                 
             # Cap the difficulty factor
-            rr_difficulty = np.clip(rr_difficulty, 0.5, 3.0)
-            chase_difficulty = rr_difficulty / resources_remaining
-            
+
             # 4.4 Win probability adjustment using Beta distribution
             # Parameters shape the distribution based on match stage
             match_progress = 1 - (remaining_overs / total_overs)
+
+            max_rr_difficulty = 3.0 + 2.0 * (1 - match_progress)  # lenient early, stricter late
+            rr_difficulty = np.clip(rr_difficulty, 0.3, max_rr_difficulty)
+            chase_difficulty = rr_difficulty / resources_remaining
             
             # At start of innings, rely more on pre-match model
             # As match progresses, increase weight of in-game factors
+            chase_difficulty = np.log1p(rr_difficulty / resources_remaining)
+            beta_input = np.clip(chase_difficulty / 5.0, 0.0001, 0.9999)
             alpha = 1 + (10 * match_progress)
             beta_param = 1 + (5 * chase_difficulty)
             
             # Generate win probability from Beta distribution
-            chase_win_prob = 1 - beta.cdf(chase_difficulty / 5, alpha, beta_param)
+            chase_win_prob = 1 - beta.cdf(beta_input, alpha, beta_param)
             
             # 4.5 Apply pressure factors for end-game scenarios
             if remaining_overs < 5:
@@ -469,8 +458,8 @@ def main(match_info):
     df = pd.read_csv('output2.csv')
     
     # Initialize and train the predictor
-    predictor = IPLWinPredictor(model_type='xgboost')
-    results = predictor.train(df, tune_hyperparams=True)
+    predictor = IPLWinPredictor()
+    predictor.train(df)
     
     #print(f"Model Accuracy: {accuracy:.2f}")
    # print("\nClassification Report:")
@@ -491,7 +480,7 @@ def main(match_info):
         print(f"Error in prediction: {str(e)}")
 
     return jsonify(response)"""
-    if os.path.exists('predictor_bundle.pkl'):
+    """if os.path.exists('predictor_bundle.pkl'):
         # ✅ Load saved model and components
         bundle = joblib.load('predictor_bundle.pkl')
         predictor.model = bundle['model']
@@ -502,7 +491,7 @@ def main(match_info):
     else:
         # 🔁 First time: train and save
         results = predictor.train(df, tune_hyperparams=True)
-        # saving handled inside train()
+        # saving handled inside train()"""
 
     # Now use predictor to make predictions
     probabilities = predictor.predict_win_probability(match_info)
