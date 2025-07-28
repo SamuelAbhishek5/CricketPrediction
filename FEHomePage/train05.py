@@ -4,8 +4,7 @@ from scipy.stats import beta
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestClassifier
 import xgboost as xgb
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectFromModel
@@ -35,7 +34,7 @@ class IPLWinPredictor:
                 random_state=42
             )
         else:
-            self.model = RandomForestRegressor(
+            self.model = RandomForestClassifier(
                 n_estimators=200,
                 max_depth=10,
                 min_samples_split=5,
@@ -79,7 +78,7 @@ class IPLWinPredictor:
             total_wins = len(team1_wins) + len(team2_wins)
             
             # Basic win rate
-            win_rate = total_wins / total_matches 
+            win_rate = total_wins / total_matches if total_matches > 0 else 0.5
             
             # Toss advantage
             toss_wins = df[(df['toss_winner'] == team)]
@@ -87,16 +86,13 @@ class IPLWinPredictor:
             toss_win_advantage = len(toss_and_match_wins) / len(toss_wins) if len(toss_wins) > 0 else 0.5
             
             # Batting first performance
-            batting_first = df[
-                ((df['toss_winner'] == team) & (df['toss_decision'] == 'bat')) |
-                ((df['toss_winner'] != team) & (df['toss_decision'] == 'field'))
-                & ((df['team1'] == team) | (df['team2'] == team))
-            ]
+            batting_first = df[((df['toss_winner'] == team) & (df['toss_decision'] == 'bat')) | 
+                              ((df['toss_winner'] != team) & (df['toss_decision'] == 'field'))]
             batting_first_wins = batting_first[batting_first['winner'] == team]
             batting_first_win_rate = len(batting_first_wins) / len(batting_first) if len(batting_first) > 0 else 0.5
-
-            # Recent form (last 30 matches)
-            recent_matches = df[(df['team1'] == team) | (df['team2'] == team)].tail(30)
+            
+            # Recent form (last 5 matches)
+            recent_matches = df[(df['team1'] == team) | (df['team2'] == team)].tail(5)
             recent_wins = recent_matches[recent_matches['winner'] == team]
             recent_form = len(recent_wins) / len(recent_matches) if len(recent_matches) > 0 else 0.5
             
@@ -107,7 +103,6 @@ class IPLWinPredictor:
                 'batting_first_win_rate': batting_first_win_rate,
                 'recent_form': recent_form
             }
-        #print("Team statistics calculated. total teams:",(self.team_stats))
     
     def calculate_city_stats(self, df):
         if 'city' not in df.columns:
@@ -249,12 +244,11 @@ class IPLWinPredictor:
                 'n_estimators': [100, 200, 300],
                 'max_depth': [5, 10, 15],
                 'min_samples_split': [2, 5, 10],
-                'min_samples_leaf': [1, 2, 4],
-                'max_features': ['auto', 'sqrt']
+                'min_samples_leaf': [1, 2, 4]
             }
         
         grid_search = GridSearchCV(
-            self.model, param_grid, cv=5, scoring='neg_mean_squared_error', n_jobs=-1, verbose=1
+            self.model, param_grid, cv=5, scoring='accuracy', n_jobs=-1, verbose=1
         )
         grid_search.fit(X_train, y_train)
         
@@ -295,22 +289,15 @@ class IPLWinPredictor:
             
             # Evaluate on test set
             y_pred = self.model.predict(X_test)
-            mse = mean_squared_error(y_test, y_pred)
-            rmse = np.sqrt(mse)
-            r2 = r2_score(y_test, y_pred)
-            mae = mean_absolute_error(y_test, y_pred)
-
-            print(f"\nTest Metrics:")
-            print(f"RMSE: {rmse:.4f}")
-            print(f"MAE: {mae:.4f}")
-            print(f"R2 Score: {r2:.4f}")
-
-            return {
-                'rmse': rmse,
-                'mae': mae,
-                'r2': r2,
-                'best_params': best_params
-            }
+            accuracy = accuracy_score(y_test, y_pred)
+            report = classification_report(y_test, y_pred)
+            conf_matrix = confusion_matrix(y_test, y_pred)
+            
+            print(f"\nTest accuracy: {accuracy:.4f}")
+            print("\nClassification report:")
+            print(report)
+            print("\nConfusion matrix:")
+            print(conf_matrix)
             
             """# Get feature importance
             
@@ -330,7 +317,7 @@ class IPLWinPredictor:
                 
                 
                 # Plot feature importance
-                self.plot_feature_importance()
+                self.plot_feature_importance()"""
             
             return {
                 'accuracy': accuracy,
@@ -338,7 +325,7 @@ class IPLWinPredictor:
                 'report': report,
                 'conf_matrix': conf_matrix,
                 'best_params': best_params
-            }"""
+            }
             
         except Exception as e:
             print(f"Error in train method: {str(e)}")
@@ -389,7 +376,7 @@ class IPLWinPredictor:
     def predict_win_probability(self, match_info):
         """Predict win probability for a match"""
         try:
-
+            # Prepare base features
             match_data = pd.DataFrame([match_info])
             X_full = self.prepare_features(match_data, is_training=False)
             
@@ -398,20 +385,18 @@ class IPLWinPredictor:
                 
             X = self.selector.transform(X_full)
             
-            # Get probability through regression (output will be between 0 and 1)
-            prediction = self.model.predict(X)[0]
-            # Clip the prediction to ensure it's between 0 and 1
-            team1_base_prob = np.clip(prediction, 0, 1)
-            team2_base_prob = 1 - team1_base_prob
-            print(f"Base probabilities - Team 1: {team1_base_prob}, Team 2: {team2_base_prob}")
+            # Get base probabilities
+            probabilities = self.model.predict_proba(X)[0]
+            team1_base_prob, team2_base_prob = probabilities[1], probabilities[0]
+            print("Base Probabilities:", probabilities)
+            
+            # If no match situation data, return base probabilities
             if not all(k in match_info for k in ['required_runs', 'remaining_overs', 'wickets_lost']):
                 return {
-                    'team1_win_probability': float(team1_base_prob),
-                    'team2_win_probability': float(team2_base_prob),
+                    'team1_win_probability': team1_base_prob,
+                    'team2_win_probability': team2_base_prob,
                     'match_situation': None
                 }
-
-            
             
             # Determine which team is batting first
             batting_first = (((match_info.get('toss_winner') == match_info.get('team1')) & (match_info.get('toss_decision') == 'bat')) | 
@@ -500,8 +485,8 @@ class IPLWinPredictor:
             # Return base probabilities in case of error
             try:
                 return {
-                    'team1_win_probability': np.clip(prediction, 0, 1),
-                    'team2_win_probability': np.clip(1 - prediction, 0, 1),
+                    'team1_win_probability': probabilities[1],
+                    'team2_win_probability': probabilities[0],
                     'match_situation': None
                 }
             except:
@@ -532,51 +517,36 @@ class IPLWinPredictor:
             return None
 
 def auto_select_model(df):
-    """Automatically select the best model between XGBoost and Random Forest based on RMSE"""
+    """Automatically select the best model between XGBoost and Random Forest"""
     models = ['xgboost', 'random_forest']
     best_predictor = None
-    best_rmse = float('inf')  # Lower RMSE is better
+    best_score = 0
     
     for model_type in models:
         print(f"\nEvaluating {model_type} model...")
         predictor = IPLWinPredictor(model_type=model_type)
         results = predictor.train(df, tune_hyperparams=False)  # Don't tune during auto-selection
         
-        current_rmse = results['rmse']
-        if current_rmse < best_rmse:
-            best_rmse = current_rmse
+        if results['accuracy'] > best_score:
+            best_score = results['accuracy']
             best_predictor = predictor
     
     if best_predictor:
-        print(f"\nAuto-selected model: {best_predictor.model.__class__.__name__} with RMSE {best_rmse:.4f}")
+        print(f"\nAuto-selected model: {best_predictor.model.__class__.__name__} with accuracy {best_score:.4f}")
     return best_predictor
-def flip_row(row):
-    flipped = row.copy()
-    flipped['team1'], flipped['team2'] = row['team2'], row['team1']
-    if row['toss_winner'] == row['team1']:
-        flipped['toss_winner'] = row['team2']
-    elif row['toss_winner'] == row['team2']:
-        flipped['toss_winner'] = row['team1']
-    if row['winner'] == row['team1']:
-        flipped['winner'] = row['team2']
-    elif row['winner'] == row['team2']:
-        flipped['winner'] = row['team1']
-    return flipped
 
 def main():
-    # ...existing code...
+    # Load your cleaned IPL dataset
     try:
-        df = pd.read_csv('output2.csv')
+        df = pd.read_csv('output2.csv',skiprows=range(1, 887))
         print("Data loaded successfully. Shape:", df.shape)
-        """df_flipped = df.apply(flip_row, axis=1)
-        df_combined = pd.concat([df, df_flipped], ignore_index=True)"""
     except Exception as e:
         print(f"Error loading data: {str(e)}")
         return
     
     # Auto-select the best model
     predictor = auto_select_model(df)
-
+    
     if predictor is None:
         print("Failed to create a valid model")
         return
@@ -584,18 +554,20 @@ def main():
     # Now train the best model with hyperparameter tuning
     print("\nTraining selected model with hyperparameter tuning...")
     results = predictor.train(df, tune_hyperparams=True)
+    
+    # Print results
+    print(f"\nFinal Model Accuracy: {results['accuracy']:.4f}")
+    print("\nClassification Report:")
+    print(results['report'])
 
-    # Print regression results instead of classification metrics
-    print("\nFinal Model Results:")
-    print(f"RMSE: {results['rmse']:.4f}")
-    print(f"MAE: {results['mae']:.4f}")
-    print(f"R2 Score: {results['r2']:.4f}")
+    print("\nConfusion Matrix:")
+    print(results['conf_matrix'])
 
-    if results['best_params']:
-        print("\nBest Parameters:")
-        print(results['best_params'])
-
-    # Example prediction remains the same, but interpretation changes
+    print("\nCross-Validation Scores:")
+    print(results['cv_scores'])
+    print(f"CV Mean Accuracy: {results['cv_scores'].mean():.4f}")
+    
+    # Example prediction
     match_info = {
         'team2': 'Chennai Super Kings',
         'team1': 'Royal Challengers Bengaluru',
@@ -605,16 +577,17 @@ def main():
         'required_runs': 87,
         'remaining_overs': 8,
         'wickets_lost': 2,
-        'toss_winner': 'Royal Challengers Bengaluru',
+        'toss_winner': 'Chennai Super Kings',
         'toss_decision': 'field'
     }
     
     try:
         probabilities = predictor.predict_win_probability(match_info)
-        print("\nWin Probabilities (from regression):")
+        print("\nWin Probabilities:")
         print(f"{match_info['team1']}: {probabilities['team1_win_probability']:.2%}")
         print(f"{match_info['team2']}: {probabilities['team2_win_probability']:.2%}")
-        # Print match situation analysis        
+        
+        # Print match situation analysis if available
         if probabilities['match_situation']:
             print("\nMatch Situation Analysis:")
             sit = probabilities['match_situation']
@@ -627,8 +600,7 @@ def main():
         print(f"Error in prediction: {str(e)}")
     
     # Save the trained model
-    predictor.save_model('ipl_win_predictor_regression.pkl')
-
+    predictor.save_model('ipl_win_predictor.pkl')
 
 if __name__ == "__main__":
     main()
