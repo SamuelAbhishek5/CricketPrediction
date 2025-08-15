@@ -66,12 +66,12 @@ async function predict() {
     const team1 = document.getElementById('team1').value;
     const team2 = document.getElementById('team2').value;
     const city = document.getElementById('city').value;
-    const required_runs = document.getElementById('required_runs').value;
-    const remaining_overs = document.getElementById('remaining_overs').value;
-    const remaining_wickets = document.getElementById('remaining_wickets').value;
+    const required_runs = Number(document.getElementById('required_runs').value);
+    const remaining_overs = Number(document.getElementById('remaining_overs').value);
+    const wickets_lost = Number(document.getElementById('wickets_lost').value);
     const toss_winner = document.getElementById('toss_winner').value;
     const toss_decision = document.getElementById('toss_decision').value;
-    const target_runs = document.getElementById('target_runs').value;
+    const target_runs = Number(document.getElementById('target_runs').value);
 
     if (!team1 || !team2 || team1 === team2) {
         showAlert('Please select two different teams.');
@@ -83,18 +83,18 @@ async function predict() {
         return;
     }
 
-    //if (required_runs <= 0 || required_runs > target_runs) {
-        //showAlert('Please enter a valid number for required runs.');
-       // return;
-   // }
+    if (!required_runs || required_runs <= 0 || required_runs > target_runs) {
+        showAlert(`Please enter a valid number for required runs. You entered: ${required_runs}, and the target runs are: ${target_runs}`);
+        return;
+    }
 
     if (!remaining_overs || remaining_overs <= 0) {
         showAlert('Please enter a valid number for remaining overs.');
         return;
     }
 
-    if (!remaining_wickets || remaining_wickets < 0) {
-        showAlert('Please enter a valid number for remaining wickets.');
+    if (!wickets_lost || wickets_lost < 0 || wickets_lost >= 10) {
+        showAlert('Please enter a valid number for wickets lost.');
         return;
     }
 
@@ -109,7 +109,7 @@ async function predict() {
         city: city,
         required_runs: required_runs,
         remaining_overs: remaining_overs,
-        remaining_wickets: remaining_wickets,
+        wickets_lost: wickets_lost,
         toss_winner: toss_winner,
         toss_decision: toss_decision,
         target_runs: target_runs

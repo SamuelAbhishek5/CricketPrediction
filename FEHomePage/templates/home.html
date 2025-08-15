@@ -151,7 +151,7 @@
         function populateCards(matches) {
             const scoreContainer = document.getElementById('score-container');
 
-            matches.typeMatches[1].seriesMatches[0].seriesAdWrapper.matches.forEach((match) => {
+            matches.typeMatches[0].seriesMatches[0].seriesAdWrapper.matches.forEach((match) => {
                 const card = document.createElement("div");
                 card.classList.add("score-card");
 
@@ -174,7 +174,29 @@
                 scoreContainer.appendChild(card);
             });
 
-            matches.typeMatches[1].seriesMatches[2].seriesAdWrapper.matches.forEach((match) => {
+            matches.typeMatches[0].seriesMatches[1].seriesAdWrapper.matches.forEach((match) => {
+                const card = document.createElement("div");
+                card.classList.add("score-card");
+
+                // Using dot notation to populate the card content
+                card.innerHTML = `
+                    <div class="match-details">${match.matchInfo.matchDesc}</div>
+                    <div class="team-score">
+                        ${match.matchInfo.team1.teamSName}: 
+                        ${match.matchScore.team1Score.inngs1.runs}/${match.matchScore.team1Score.inngs1.wickets} 
+                        in ${match.matchScore.team1Score.inngs1.overs} overs
+                    </div>
+                    <div class="team-score">
+                        ${match.matchInfo.team2.teamSName}: 
+                        ${match.matchScore.team2Score.inngs1.runs}/${match.matchScore.team2Score.inngs1.wickets} 
+                        in ${match.matchScore.team2Score.inngs1.overs} overs
+                    </div>
+                    <div class="status">${match.matchInfo.status}</div>
+                `;
+
+                scoreContainer.appendChild(card);
+            });
+            matches.typeMatches[1].seriesMatches[0].seriesAdWrapper.matches.forEach((match) => {
                 const card = document.createElement("div");
                 card.classList.add("score-card");
 

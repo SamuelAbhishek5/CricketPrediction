@@ -3,7 +3,7 @@
 // Sample match data for live match display
 
 
-  fetch('{{ url_for('static', filename='json/Matchdetails.json') }}')
+  fetch('/static/json/Matchdetails.json')
 
     .then(response => response.json())  // Parse the JSON data
     .then(data => {
