@@ -10,7 +10,6 @@ from scipy.special import expit
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-import xgboost as xgb
 from sklearn.feature_selection import SelectFromModel
 import warnings
 warnings.filterwarnings('ignore')
