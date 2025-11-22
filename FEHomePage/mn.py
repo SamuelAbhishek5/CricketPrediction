@@ -5,6 +5,7 @@ from flask_cors import CORS
 import csv
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 from scipy.special import expit
 from sklearn.preprocessing import LabelEncoder, StandardScaler
@@ -285,7 +286,6 @@ class IPLWinPredictor:
             raise
     
     def plot_feature_importance(self, top_n=10):
-        """Plot feature importance"""
         if self.feature_importances_ is None:
             print("No feature importances available")
             return
